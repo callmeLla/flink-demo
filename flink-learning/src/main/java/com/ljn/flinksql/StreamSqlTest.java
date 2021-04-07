@@ -1,4 +1,4 @@
-package ljn.flinksql;
+package com.ljn.flinksql;
 
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.TableEnvironment;

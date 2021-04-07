@@ -1,4 +1,4 @@
-package ljn;
+package com.ljn;
 
 import org.apache.flink.api.common.functions.FoldFunction;
 import org.apache.flink.api.java.functions.KeySelector;
@@ -33,7 +33,7 @@ public class WikipediaAnalysis {
                 .timeWindow(Time.seconds(5))
                 /** fold聚合函数，第一个参数：初始值，第二个参数：FoldFunction */
                 /** Tuple2<String 用户, Long 用户在5s的窗口内编辑的字节数> */
-                /** flink发展非常快，为了保持向下兼容，方法并没有删除，只是不建议我们使用 */ 
+                /** flink发展非常快，为了保持向下兼容，方法并没有删除，只是不建议我们使用 */
                 .fold(new Tuple2<>("", 0L), new FoldFunction<WikipediaEditEvent, Tuple2<String, Long>>() {
                     @Override
                     public Tuple2<String, Long> fold(Tuple2<String, Long> acc, WikipediaEditEvent event) {
@@ -48,7 +48,7 @@ public class WikipediaAnalysis {
                     }
                 });
         /** 没有sink部分，直接做一个打印 */
-        /** 真正生产环境，这里可能是发送到kafka中，或者落地到其他的存储中，如redis等等 */ 
+        /** 真正生产环境，这里可能是发送到kafka中，或者落地到其他的存储中，如redis等等 */
         result.print();
         /** 直接用上下文进行执行 */
         see.execute();

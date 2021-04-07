@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package ljn;
+package com.ljn;
 
 import org.apache.flink.api.java.ExecutionEnvironment;
 

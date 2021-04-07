@@ -1,13 +1,18 @@
-package ljn.flinksql;
+package com.ljn.flinksql;
 
 import org.apache.flink.table.api.EnvironmentSettings;
 import org.apache.flink.table.api.TableEnvironment;
 
-public class TestFlinkSql {
+/**
+ * Created by search-lemon on 2020/10/27.
+ * 读取本地url_parse_100.txt文件，解析后输出到控制台.
+ */
+public class BatchSqlTest {
 
+    // use blink planner
     private static TableEnvironment tableEnv;
 
-    public static void main(final String[] args) throws Exception {
+    public static void main(String[] args) {
         initBlinkEnv();
         registerFileSource();
         print();
@@ -17,7 +22,7 @@ public class TestFlinkSql {
         EnvironmentSettings tableEnvSettings = EnvironmentSettings
                 .newInstance()
                 .useBlinkPlanner() // 设置使用BlinkPlanner
-                .inStreamingMode() // 设置流处理模式
+                .inBatchMode() // 设置批处理模式
                 .build();
 
         tableEnv = TableEnvironment.create(tableEnvSettings);
@@ -30,12 +35,9 @@ public class TestFlinkSql {
                 + " sign STRING,"
                 + " version STRING"
                 + " ) WITH ( "
-                + " 'connector' = 'rocketmq',"
-                + " 'format' = 'json',"
-                + " 'host' = '172.16.16.118',"
-                + " 'port' = '9876',"
-                + " 'topic' = 'PushTopic',"
-                + " 'group' = 'ddd'"
+                + " 'connector' = 'filesystem',"
+                + " 'path' = 'D:\\test\\flink\\url_parse_100.txt',"
+                + " 'format' = 'json'"
                 + ")";
 
         tableEnv.executeSql(sourceSql); // 注册source表到env中
@@ -47,13 +49,7 @@ public class TestFlinkSql {
     private static void print() {
 
         String printTable = "CREATE TABLE print_table"
-                + " WITH ('connector' = 'rocketmq',"
-                +"'format' = 'json',"
-                + " 'host' = '172.16.16.119',"
-                + " 'port' = '9876',"
-                + " 'topic' = 'ljntest',"
-                + " 'group' = 'ddd'"
-                + ")"
+                + " WITH ('connector' = 'print')"
                 + " LIKE url_parse_100 (EXCLUDING ALL)"; // 注册print表到env中
 
         tableEnv.executeSql(printTable);
@@ -65,5 +61,4 @@ public class TestFlinkSql {
         tableEnv.executeSql(printData); // 输出数据到控制台
 
     }
-
 }

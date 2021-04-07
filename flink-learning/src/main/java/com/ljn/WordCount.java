@@ -1,4 +1,4 @@
-package ljn;
+package com.ljn;
 
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.DataSet;
