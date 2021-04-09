@@ -1,22 +1,35 @@
-package com.ljn;
+package com.ljn.sourceapi;
 
+import com.ljn.WordCount;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
+import org.apache.flink.api.java.operators.DataSource;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.util.Collector;
 
+import java.util.ArrayList;
+import java.util.List;
 
-public class WordCount {
+/**
+ * @ClassName: SourceTestCollection
+ * @Description: SourceAPI样例-只修改wordcount的获取数据部分
+ * 从集合中获取数据
+ * @Author: liujianing
+ * @Date: 2021/4/7 17:47
+ * @Version: v1.0 文件初始创建
+ */
+public class SourceTestCollection {
     public static void main(String[] args) throws Exception {
-        /** 创立一个flink执行环境的上下文ExecutionEnvironment */
-        final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
-
-        /** 使用本地的几行文本作为需要处理的数据,将一些句子构造成DataSet，泛型是String类型 */
-        DataSet<String> text = env.fromElements("to be, or not to be,--that is the question:--",
-                "wherether 'tis nobler in the mind to suffer",
-                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                "bb cc dd ee dfdddd aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        /** 创建一个运行环境 */
+        ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
+        List<String> list = new ArrayList<>();
+        list.add("hello");
+        list.add("flink");
+        list.add("hello");
+        list.add("ljn");
+        /** 读取文件内容作为数据源 */
+        DataSource<String> text = env.fromCollection(list);
 
         /** 对这个DataSet进行处理 */
         DataSet<Tuple2<String,Integer>> counts =
@@ -29,20 +42,10 @@ public class WordCount {
                         .sum(1);
         /** 进行打印 */
         counts.print();
+
     }
 
-
-    /**
-     * @Description:  自己实现的统计wordcount方法：
-     * 把整个句子用非单词符号切分开，分成一个一个的单词
-     * 拼装成单词一个一个的Tuple
-     * 计算每一个Tuple单词的个数进行聚合
-     * @Date: 2021/4/2 17:16
-     * @Author: liujianing
-     * @Return
-     * @Throws
-     */
-    public static final class LineSplitter implements FlatMapFunction<String,Tuple2<String,Integer>> {
+    public static final class LineSplitter implements FlatMapFunction<String, Tuple2<String,Integer>> {
         /** 复写flatMap实现功能 */
         @Override
         public void flatMap(String value, Collector<Tuple2<String, Integer>> out) throws Exception {

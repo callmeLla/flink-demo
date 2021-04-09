@@ -1,48 +1,50 @@
-package com.ljn;
+package com.ljn.sourceapi;
 
+import com.ljn.WordCount;
 import org.apache.flink.api.common.functions.FlatMapFunction;
 import org.apache.flink.api.java.DataSet;
 import org.apache.flink.api.java.ExecutionEnvironment;
+import org.apache.flink.api.java.operators.DataSource;
 import org.apache.flink.api.java.tuple.Tuple2;
+import org.apache.flink.streaming.api.datastream.DataStream;
+import org.apache.flink.streaming.api.datastream.DataStreamSource;
+import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment;
 import org.apache.flink.util.Collector;
 
+import java.util.ArrayList;
+import java.util.List;
 
-public class WordCount {
+/**
+ * @ClassName: SocketTextStreamWordCount
+ * @Description: SourceAPI样例-只修改wordcount的获取数据部分
+ * 从socket中获取数据(流式)
+ * @Author: liujianing
+ * @Date: 2021/4/7 17:47
+ * @Version: v1.0 文件初始创建
+ */
+public class SocketTextStreamWordCount {
     public static void main(String[] args) throws Exception {
-        /** 创立一个flink执行环境的上下文ExecutionEnvironment */
-        final ExecutionEnvironment env = ExecutionEnvironment.getExecutionEnvironment();
-
-        /** 使用本地的几行文本作为需要处理的数据,将一些句子构造成DataSet，泛型是String类型 */
-        DataSet<String> text = env.fromElements("to be, or not to be,--that is the question:--",
-                "wherether 'tis nobler in the mind to suffer",
-                "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
-                "bb cc dd ee dfdddd aaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        /** 创建一个运行环境 */
+        StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
+        /** 从socket获取数据-本机9001端口 需启动socket发送word */
+        DataStreamSource<String> text = env.socketTextStream("127.0.0.1",9001);
 
         /** 对这个DataSet进行处理 */
-        DataSet<Tuple2<String,Integer>> counts =
+        DataStream<Tuple2<String,Integer>> counts =
                 /** flatMap-将一系列输入打散压平，自己实现LineSplitter方法 */
                 text.flatMap(new LineSplitter())
                         /** （i,1）(am,1)(chinese,1) */
                         /** 按照key进行聚合，0代表第0个元素 */
-                        .groupBy(0)
+                        .keyBy(0)
                         /** 按第一个元素求和 */
                         .sum(1);
         /** 进行打印 */
-        counts.print();
+        counts.print().setParallelism(1);
+        env.execute("Socket Window WordCount");
+
     }
 
-
-    /**
-     * @Description:  自己实现的统计wordcount方法：
-     * 把整个句子用非单词符号切分开，分成一个一个的单词
-     * 拼装成单词一个一个的Tuple
-     * 计算每一个Tuple单词的个数进行聚合
-     * @Date: 2021/4/2 17:16
-     * @Author: liujianing
-     * @Return
-     * @Throws
-     */
-    public static final class LineSplitter implements FlatMapFunction<String,Tuple2<String,Integer>> {
+    public static final class LineSplitter implements FlatMapFunction<String, Tuple2<String,Integer>> {
         /** 复写flatMap实现功能 */
         @Override
         public void flatMap(String value, Collector<Tuple2<String, Integer>> out) throws Exception {
